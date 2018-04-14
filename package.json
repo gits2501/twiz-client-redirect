@@ -13,7 +13,7 @@
   "author": "github.com/gits2501",
   "license": "MIT",
   "dependencies": {
-    "twiz-client-utils": "file:../twiz-client-utils"
+    "twiz-client-utils": "https://github.com/gits2501/twiz-client-utils.git"
   },
   "devDependencies": {
     "browserify": "^16.1.1",
