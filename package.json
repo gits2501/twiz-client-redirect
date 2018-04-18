@@ -5,21 +5,22 @@
   "main": "src/Redirect.js",
   "scripts": {
     "browserify": "./node_modules/browserify/bin/cmd.js test/redirect.js -o test/redirect_bundle.js",
+    "parcel": "parcel test/redirect.js --out-dir test/redirect_parcel.js",
     "watch": "watchify test/redirect.js -o test/redirect_bundle.js --debug -v",
     "build": "npm run browserify && npm run watch",
-    "test-browser": "./node_modules/browserify/bin/cmd.js test/redirect.js | ./node_modules/smokestack/bin/smokestack.js -b firefox | tap-spec",
-    "test": "test/test.sh"
+    "test-browser": "npm run browserify && ",
+    "test": "test/test.sh",
+    "mocha": "mocha test/mocha-test.js ",
+    "test":" npm run browserify && mocha-chrome test/mocha-test.html"
   },
   "author": "github.com/gits2501",
   "license": "MIT",
   "dependencies": {
-    "twiz-client-utils": "https://github.com/gits2501/twiz-client-utils.git"
+    "twiz-client-utils": "file:../twiz-client-utils"
   },
   "devDependencies": {
-    "browserify": "^16.1.1",
-    "smokestack": "^3.4.1",
-    "tap-spec": "^4.1.1",
-    "tape": "^4.9.0",
-    "watchify": "^3.11.0"
+    "browserify": "^16.2.0",
+    "mocha": "^5.1.0",
+    "mocha-chrome": "^1.1.0"
   }
 }

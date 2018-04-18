@@ -40,7 +40,7 @@ var CustomError = require('twiz-client-utils').CustomError;
    
    Redirect.prototype.deliverData = function(resolve, obj){ // delivers data to user by promise or
                                                                         // by callback function
-      console.log('in deliverData, obj:', obj);
+     // console.log('in deliverData, obj:', obj);
       if(resolve){ console.log('has promise')
          resolve(obj);
          return;
@@ -73,7 +73,7 @@ var CustomError = require('twiz-client-utils').CustomError;
 
       if(!this.newWindow){ // single page app
          this.SPA(resolve, url); // redirects current window to url
-         return
+         return;
 
       }
                          
@@ -82,30 +82,31 @@ var CustomError = require('twiz-client-utils').CustomError;
    };
 
    Redirect.prototype.SPA = function(resolve, url){   // logic for Single Page Apps
-     
-      function redirectCurrentWindow(){ window.location = url }// redirects window we are currently in (no popUp)
+      function redirectCurrentWindow(){ window.location = url; }// redirects window we are currently in (no popUp)
       var obj = { 'redirection': true } // since there is no newWindow reference, just indicate redirection
      
-      if(resolve){                 // promise
-         resolve(obj);                                 // resolve with obj
+      if(resolve){                   // resolve promise
+         resolve(obj);               // resolve with obj
          Promise.resolve()             
-         .then(function(){ redirectCurrentWindow() })  // redirect asap
-         return
+         .then(function(){          // redirect asap
+            redirectCurrentWindow() 
+         })
+         return;
       }
 
       if(this.callback_func){     // when no promise call user callback func
-         this.callback_func(obj);                                 // run callback with token
-         setTimeout(function(){redirectCurrentWindow()}, 2000) ;  // redirect asap
-         return;
+         this.callback_func(obj);                                   // run callback with token
+         setTimeout(function(){ redirectCurrentWindow() }, 2000) ;  // redirect asap
+         return; 
       }
 
       
       throw this.CustomError('noCallbackFunc'); // raise error when there is no promise or callback present
    }
 
-   Redirect.prototype.site = function(resolve, url){
+   Redirect.prototype.site = function(resolve, url){ console.log('>>> Site')
 
-      var opened = this.openWindow();       // open new window and save its reference
+      var opened = this.openWindow();       // open new window/popup and save its reference
       opened.location = url;                // change location (redirect)
        
       this.deliverData(resolve, { 'window': opened })       // newWindow reference
@@ -115,7 +116,7 @@ var CustomError = require('twiz-client-utils').CustomError;
    Redirect.prototype.openWindow = function(){ // opens pop-up and puts in under current window
       console.log("==== POP-UP =====");
       this.newWindow.window = window.open('', this.newWindow.name, this.newWindow.features);
-      console.log("this.newWindow: ", this.newWindow.window ); 
+      // console.log("this.newWindow: ", this.newWindow.window ); 
 
       return this.newWindow.window;
    }
