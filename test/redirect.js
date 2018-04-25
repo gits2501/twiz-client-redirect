@@ -1,8 +1,7 @@
 var Redirect = require('../src/Redirect.js');
-
 var assert = require('assert');
-console.log('assert:', assert)
-var cb =  function(deliveredData, test){ console.log(deliveredData); test()}; // callback function
+
+var cb =  function(deliveredData, descibe){ console.log(deliveredData); test()}; // callback function
 var nW = {
     name: 'nw',
     features:'resizable=yes,height=613,width=400,left=400,top=300'
@@ -17,49 +16,64 @@ var args = {
 
 var rd = new Redirect(args);
 
-test('Redirect', function(t){
-   test('Redirection params', function(t){
-      t.plan(3);
-      t.deepEquals(rd.newWindow, args.newWindow, 'newWindow');
-      t.equals(rd.url, args.redirectionUrl, 'redirectionUrl');
-      t.deepEquals(rd.callback_func, rd.callback_func, 'callback function')
+describe('>>>  Redirect <<<', function(t){
+   describe('Redirection params', function(t){
+      
+      it('newWindow',function(){
+         assert.deepStrictEqual(rd.newWindow, args.newWindow);
+      })
+      it('redirectionUrl', function(){
+         assert.equal(rd.url, args.redirectionUrl);
+      })
+      it('callback function', function(){
+        assert.deepStrictEqual(rd.callback_func, rd.callback_func);
+      })
    })   
 
   /// mock needed params
   var error;                                         // no error
   var sentData = {
-     oauth_token: 'longStringOfAlphaNumerics109', // redirection has to happen (token is present)
-     oauth_callback_confirmed: "true"                   // redirection url (callback url) confirmed 
+     oauth_token: 'longStringOfAlphaNumerics109',    // redirection has to happen (token is present)
+     oauth_callback_confirmed: "true"                // redirection url (callback url) confirmed 
   }
 
 
-  test('redirect (Promise)', function(t){
+  describe('Redirect (Promise)', function(t){
      
      var resolve;                 
      var p =  new Promise(function(res, rej){ 
            resolve = res;                         // remember resolve
      })
     
-     test('redirection (site scenario)', function(t){
-        t.plan(4);
-
+     describe('Site', function(t){              // site scenarion (opens new window / popup)
        
-        t.doesNotThrow(rd.redirection.bind(rd, resolve, error, sentData),undefined,' no Error detected');
+        it('no Error detected', function(){
+           assert.doesNotThrow(rd.redirection.bind(rd, resolve, error, sentData), undefined);
+        })
 
-        t.deepEquals(rd.requestToken, sentData, 'data received');
-     
-        t.equals(window.localStorage.requestToken_, sentData.oauth_token, 'oauth_token (request token) saved'); 
+        it('data received', function(){
+           assert.deepStrictEqual(rd.requestToken, sentData);
+        })
         
-        p.then(function(o){
-           if(o.window) t.ok(typeof o.window === 'object', ' redirected' );
-        });
+        it('oauth_token (request token) saved', function(){
+          assert.equal(window.localStorage.requestToken_, sentData.oauth_token); 
+        })
+        
+        it('redirected ->', function(done){
+           p.then(function(o){
+                if(o.window) 
+                   assert.ok(typeof o.window === 'object', ' redirected' );
+                   done();
+           });
+         })
 
-        test('callback url not confirmed by Twitter (site)', function(t){
-            t.plan(1);
-            sentData.oauth_callback_confirmed = false;  // simulate confirmation with false
-            t.throws(rd.redirection.bind(rd, resolve, error, sentData),'throw error (url not confirmed)');
+        describe('callback url not confirmed by Twitter', function(t){
             
-            sentData.oauth_callback_confirmed = "true"; // return initial value
+            it('throw error [url not confirmed]', function(){
+               sentData.oauth_callback_confirmed = false;  // simulate confirmation with false
+              assert.throws(rd.redirection.bind(rd, resolve, error, sentData));
+               sentData.oauth_callback_confirmed = "true"; // return initial value
+            })
      
         })
 
@@ -67,26 +81,40 @@ test('Redirect', function(t){
         
      })
 
-     test('redirection (spa scenario)', function(t){
-        t.plan(4);
+     describe('SPA', function(t){ // single page app redirect current window (-no- ne window / popup)
     
-        // rd.newWindow = undefined; - should not be commented but smokestack testing cannot deal with 
-        //                             redirection of current page (SPA) which runs the test                                
+       // rd.newWindow = undefined; - should not be commented but testing cannot deal with 
+                                    //  redirection of current page (SPA) which runs the test                                
         var resolve;
         var p = new Promise(function(res, rej){  resolve = res});
-        t.doesNotThrow(rd.redirection.bind(rd, resolve, error, sentData), undefined,' no Error detected');
+  
+        it('no Error detected', function(){
+           assert.doesNotThrow(rd.redirection.bind(rd, resolve, error, sentData), undefined);
+        })
 
-        t.deepEquals(rd.requestToken, sentData, 'data received');
-        t.equals(window.localStorage.requestToken_, sentData.oauth_token, 'oauth_token (request token) saved'); 
+        it('data received', function(){
+           assert.deepStrictEqual(rd.requestToken, sentData, 'data received');
+        })
+        
+        it('oauth_token (request token) saved', function(){
+           assert.equal(window.localStorage.requestToken_, sentData.oauth_token); 
+        })
 
-        p.then(function(o){
-           if(o.window) t.ok(o.window, ' redirected' );
+        it('redirected ->',function(done){
+           p.then(function(o){
+             if(o.window){ 
+                 assert.ok(o.window);
+                 done();
+              }
+           })
          });
         
-        test('callback url not confirmed by Twitter (spa)', function(t){
-            t.plan(1);
-            sentData.oauth_callback_confirmed = false;  // simulate confirmation with false
-            t.throws(rd.redirection.bind(rd, resolve, error, sentData),'throw error (url not confirmed)');
+        describe('callback url not confirmed by Twitter (spa)', function(t){
+            
+            sentData.oauth_callback_confirmed = false;  // simulate false confirmation
+            it('throw error (url not confirmed)', function(){
+               assert.doesNotThrow(rd.redirection.bind(rd, resolve, error, sentData));
+            })
             
             sentData.oauth_callback_confirmed = "true"; // return initial value
      
@@ -95,59 +123,157 @@ test('Redirect', function(t){
       })
 
     
-    t.end();
    })
   
 
-   test('redirect (NO Promise)', function(t){ // redirection happens but Promise is not avalable
-       t.plan(5);
+   describe('Redirect (Callback)', function(t){ // redirection happens but Promise is not avalable (callback used)
       
-       rd.callback_func = function(o){
-          if(o.window) t.ok(o.window, 'redirected'); // check new window reference
-       }
-
+     describe('Site', function(){
        var resolve = ''; // no promise avalable
-       t.ok(rd.callback_func, 'callback function (no promise avalable)'); 
-       t.doesNotThrow(rd.redirection.bind(rd, resolve, error, sentData), undefined,' no Error detected');
 
-       t.deepEquals(rd.requestToken, sentData, 'data received');
-       t.equals(window.localStorage.requestToken_, sentData.oauth_token, 'oauth_token (request token) saved'); 
+       it('redirected ->', function (done){
+          rd.callback_func = function(o){
+             if(o.window){  
+                 assert.ok(o.window); // check new window reference
+                 done(); 
+              }
+
+             rd.callback_func = function(){}; // set empty func so we dont call done multiple times (by other tests)
+          }
+
+          rd.redirection(resolve, error, sentData) // trigger invoking the callback_func
+       })
+       
+
+       it(' no Error detected', function(){
+         assert.doesNotThrow(rd.redirection.bind(rd, resolve, error, sentData), undefined);
+       })     
+  
+       it('callback function (no promise avalable)', function(){
+          assert.ok(rd.callback_func);
+       })          
+       
+       it('data received', function(){
+         assert.deepStrictEqual(rd.requestToken, sentData);
+       })
+
+       it('oauth_token (request token) saved', function(){
+         assert.equal(window.localStorage.requestToken_, sentData.oauth_token); 
+       })
 
         
-       test('callback url not confirmed by Twitter (spa)', function(t){
-            t.plan(1);
-            sentData.oauth_callback_confirmed = false;  // simulate confirmation with false
-            t.throws(rd.redirection.bind(rd, resolve, error, sentData),'throw error (url not confirmed)');
+       describe('callback url not confirmed by Twitter (spa)', function(t){
             
-            sentData.oauth_callback_confirmed = "true"; // return initial value
+          
+          it('throw error (url not confirmed)', function(){
+             sentData.oauth_callback_confirmed = false;  // simulate confirmation with false
+             
+             assert.throws(rd.redirection.bind(rd, resolve, error, sentData));
+             
+             sentData.oauth_callback_confirmed = "true"; // return initial value
+          })
+          
      
        })
-     t.end();
+     })
+
+     
    })
    
-   test('NO redirection (Promise)', function(t){   // redirection doesnt happen, promise is avalable
+   describe('NO redirection (Promise)', function(t){  // redirection doesnt happen, promise is avalable
        
-      test('twitter request error', function(t){  // twiter response message is not 200 OK
-        t.plan(2);
+      describe('twitter request error', function(t){  // twiter response message is not 200 OK
 
-        var error = { 
+         var error = {                                // simulate error received from twitter
            statusCode:401, 
            statusMessage: "One does not simply walk into Mordor"
-        } 
-        var resolve;
-        var p = new Promise(function(res, rej){  resolve = res});
-        t.doesNotThrow(rd.redirection.bind(rd, resolve, error, sentData), undefined, 'error handled');
+         } 
+         var resolve;
+         var p = new Promise(function(res, rej){  resolve = res});
+        
+         it('error handled', function(){
+            assert.doesNotThrow(rd.redirection.bind(rd, resolve, error, sentData), undefined);
+         })
 
 
-        p.then(function(o){
-           if(o.error) t.ok(o.error, 'error object delivered to user')
-        });
+         it('error object delivered to user', function(done){ 
+           p.then(function(o){
+             if(o.error){
+                  assert.ok(o.error);
+                  done();
+             }  
+             
+           }) 
+         });
       });
  
-       // sent data avalable(token present on server)
+      
+     describe('received twiiter api data', function(){ // sent data avalable (access token was present on server)
+       var p; 
+        it('data received', function(){
+           var resolve;
+           p = new Promise(function(res, rej){ resolve = res})
+           var error = ''
+           sentData = { data: 'Ash nazg ghimbatul'}              // sumulate data received from twitter 
+        
+           assert.doesNotThrow(rd.redirection.bind(rd, resolve, error, sentData))    
+        })
+        
+        it('data delivered to user', function(done){
+           p.then(function(o){
+              assert.ok(o.data)
+              done();
+           })
+        }) 
+    
+     })
 
-     t.end();   
    })
 
- t.end();
+   describe('NO redirection (Callback)', function(t){  // redirection doesnt happen, no promise (callabck used)
+      var error = {                                      // simulate error received from twitter
+              statusCode:401, 
+              statusMessage: "One does not simply walk into Mordor"
+      } 
+      var sentData = { data: 'Ash nazg ghimbatul'}         
+      var resolve = '' ; 
+
+      describe('twitter request error', function(t){  // twiter response message is not 200 OK
+
+         it('error handled', function(){
+            assert.doesNotThrow(rd.redirection.bind(rd, resolve, error, sentData));
+         })
+
+
+         it('error object delivered to user', function(done){ 
+           rd.callback_func = function(o){            // set callback
+             if(o.error){
+                  assert.ok(o.error);
+                  done();
+             }  
+             rd.callback_func = function(){};
+           }
+           rd.redirection(resolve, error, sentData);  // trigger callback invocation
+         });
+      });
+ 
+      
+     describe('received twiiter api data', function(){ // sent data avalable (access token was present on server)
+      
+       it('data received', function(){
+           assert.doesNotThrow(rd.redirection.bind(rd, resolve, error, sentData))    
+       })
+        
+       it('data delivered to user', function(done){
+           rd.callback_func = function(o){
+              assert.ok(o.data)
+              done();
+           }
+           rd.redirection(resolve, error, sentData);
+        }) 
+    
+     })
+
+   })
+
 })  
