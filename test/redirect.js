@@ -1,7 +1,7 @@
-var Redirect = require('../src/Redirect.js');
-var assert = require('assert');
+var Redirect = require('../src/Redirect_instrumented.js');
+var assert   = require('assert');
 
-var cb =  function(deliveredData, descibe){ console.log(deliveredData); test()}; // callback function
+var cb =  function(deliveredData, descibe){ console.log(deliveredData); test() }; // callback function
 var nW = {
     name: 'nw',
     features:'resizable=yes,height=613,width=400,left=400,top=300'
@@ -81,10 +81,9 @@ describe('>>>  Redirect <<<', function(t){
         
      })
 
-     describe('SPA', function(t){ // single page app redirect current window (-no- ne window / popup)
-    
-       // rd.newWindow = undefined; - should not be commented but testing cannot deal with 
-                                    //  redirection of current page (SPA) which runs the test                                
+     describe('SPA', function(t){ // single page app redirect current window (-no- new window / popup)
+        //  rd.newWindow = undefined; //- should not be commented but testing cannot deal with 
+                                    //  redirection of current page (SPA) which runs the test                  
         var resolve;
         var p = new Promise(function(res, rej){  resolve = res});
   

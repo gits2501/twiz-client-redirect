@@ -3,14 +3,9 @@ node_js:
  - '8.6.0'
 git:
   depth: 3
-before_install:
- - sudo apt-get install -y xvfb
- - npm i -g npm@5.6.0
-  
-addons:
-  apt:
-    packages:
-      - firefox
+before_install: 
+    - 'sudo apt-get update && sudo apt-get install linux-image-generic '
+after_success: 'npm run coveralls' 
 cache:
   directiories:
     - 'node_modules'
