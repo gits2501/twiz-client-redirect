@@ -31,11 +31,11 @@ describe('>>>  Redirect <<<', function(t){
    })   
 
   /// mock needed params
-  var error;                                         // no error
-  var sentData = {
+    var error;                                         // no error
+    var sentData = {
      oauth_token: 'longStringOfAlphaNumerics109',    // redirection has to happen (token is present)
      oauth_callback_confirmed: "true"                // redirection url (callback url) confirmed 
-  }
+    }
 
 
   describe('Redirect (Promise)', function(t){
@@ -83,7 +83,7 @@ describe('>>>  Redirect <<<', function(t){
 
      describe('SPA', function(t){ // single page app redirect current window (-no- new window / popup)
         //  rd.newWindow = undefined; //- should not be commented but testing cannot deal with 
-                                    //  redirection of current page (SPA) which runs the test                  
+                                      //  redirection of current page (SPA) which runs the test                  
         var resolve;
         var p = new Promise(function(res, rej){  resolve = res});
   

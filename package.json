@@ -4,6 +4,7 @@
   "description": "Redirect (Authorize) leg of OAuth 1.0a for twiz-client",
   "main": "src/Redirect.js",
   "scripts": {
+    "lint": "eslint src/Redirect.js",
     "instrument": "istanbul instrument src/Redirect.js --output src/Redirect_instrumented.js",
     "browserify": "./node_modules/browserify/bin/cmd.js test/redirect.js -o test/redirect_bundle.js",
     "mocha-headless": "mocha-headless-chrome -f mocha-test.html -c test/coverage.json",
@@ -18,8 +19,9 @@
   },
   "devDependencies": {
     "browserify": "^16.2.0",
-    "mocha-headless-chrome": "^2.0.0",
     "coveralls": "^3.0.0",
-    "istanbul": "^0.4.5"
+    "eslint": "^4.19.1",
+    "istanbul": "^0.4.5",
+    "mocha-headless-chrome": "^2.0.0"
   }
 }
