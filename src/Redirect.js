@@ -5,7 +5,6 @@ var CustomError = require('twiz-client-utils').CustomError;
       this.newWindow     = args.newWindow;
       this.url           = args.redirectionUrl;
       this.callback_func = args.callback_func;
-    
       // OAuth.call(this);
 
       this.requestToken;    // data from request token step   

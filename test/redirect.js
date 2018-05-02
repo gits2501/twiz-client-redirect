@@ -1,6 +1,11 @@
 var Redirect = require('../src/Redirect_instrumented.js');
 var assert   = require('assert');
 
+function errorValidation(name, err){   // used to check thrown errors by name
+
+    if(err.name === name) return true;
+}
+
 var cb =  function(deliveredData, descibe){ console.log(deliveredData); test() }; // callback function
 var nW = {
     name: 'nw',
@@ -47,19 +52,19 @@ describe('>>>  Redirect <<<', function(t){
     
      describe('Site', function(t){              // site scenarion (opens new window / popup)
        
-        it('no Error detected', function(){
+        it('no Error detected', function(){     // check that no error has been raised
            assert.doesNotThrow(rd.redirection.bind(rd, resolve, error, sentData), undefined);
         })
-
-        it('data received', function(){
+ 
+        it('data received', function(){         // data that twiter sent has been received  
            assert.deepStrictEqual(rd.requestToken, sentData);
         })
         
-        it('oauth_token (request token) saved', function(){
+        it('oauth_token (request token) saved', function(){  // token has been saved
           assert.equal(window.localStorage.requestToken_, sentData.oauth_token); 
         })
         
-        it('redirected ->', function(done){
+        it('redirected ->', function(done){                  // redirection happens
            p.then(function(o){
                 if(o.window) 
                    assert.ok(typeof o.window === 'object', ' redirected' );
@@ -71,7 +76,7 @@ describe('>>>  Redirect <<<', function(t){
             
             it('throw error [url not confirmed]', function(){
                sentData.oauth_callback_confirmed = false;  // simulate confirmation with false
-              assert.throws(rd.redirection.bind(rd, resolve, error, sentData));
+              assert.throws(rd.redirection.bind(rd, resolve, error, sentData), errorValidation.bind(null, 'callbackURLnotConfirmed'));
                sentData.oauth_callback_confirmed = "true"; // return initial value
             })
      
@@ -112,7 +117,7 @@ describe('>>>  Redirect <<<', function(t){
             
             sentData.oauth_callback_confirmed = false;  // simulate false confirmation
             it('throw error (url not confirmed)', function(){
-               assert.doesNotThrow(rd.redirection.bind(rd, resolve, error, sentData));
+               assert.doesNotThrow(rd.redirection.bind(rd, resolve, error, sentData),errorValidation.bind(null, 'callbackURLnotConfirmed'));
             })
             
             sentData.oauth_callback_confirmed = "true"; // return initial value
@@ -167,7 +172,7 @@ describe('>>>  Redirect <<<', function(t){
           it('throw error (url not confirmed)', function(){
              sentData.oauth_callback_confirmed = false;  // simulate confirmation with false
              
-             assert.throws(rd.redirection.bind(rd, resolve, error, sentData));
+             assert.throws(rd.redirection.bind(rd, resolve, error, sentData), errorValidation.bind(null, 'callbackURLnotConfirmed'));
              
              sentData.oauth_callback_confirmed = "true"; // return initial value
           })
@@ -190,12 +195,12 @@ describe('>>>  Redirect <<<', function(t){
          var resolve;
          var p = new Promise(function(res, rej){  resolve = res});
         
-         it('error handled', function(){
+         it('error handled', function(){              
             assert.doesNotThrow(rd.redirection.bind(rd, resolve, error, sentData), undefined);
          })
 
 
-         it('error object delivered to user', function(done){ 
+         it('error object delivered to user', function(done){ // informative error object delivered to user
            p.then(function(o){
              if(o.error){
                   assert.ok(o.error);
@@ -209,16 +214,16 @@ describe('>>>  Redirect <<<', function(t){
       
      describe('received twiiter api data', function(){ // sent data avalable (access token was present on server)
        var p; 
-        it('data received', function(){
+        it('data received', function(){                // data from twitter is received
            var resolve;
            p = new Promise(function(res, rej){ resolve = res})
            var error = ''
-           sentData = { data: 'Ash nazg ghimbatul'}              // sumulate data received from twitter 
+           sentData = { data: 'Ash nazg ghimbatul'}     // sumulate data received from twitter 
         
            assert.doesNotThrow(rd.redirection.bind(rd, resolve, error, sentData))    
         })
         
-        it('data delivered to user', function(done){
+        it('data delivered to user', function(done){   // data from twitter delivered to user
            p.then(function(o){
               assert.ok(o.data)
               done();
@@ -230,7 +235,7 @@ describe('>>>  Redirect <<<', function(t){
    })
 
    describe('NO redirection (Callback)', function(t){  // redirection doesnt happen, no promise (callabck used)
-      var error = {                                      // simulate error received from twitter
+      var error = {                                    // simulate error received from twitter
               statusCode:401, 
               statusMessage: "One does not simply walk into Mordor"
       } 
@@ -244,7 +249,7 @@ describe('>>>  Redirect <<<', function(t){
          })
 
 
-         it('error object delivered to user', function(done){ 
+         it('error object delivered to user', function(done){  
            rd.callback_func = function(o){            // set callback
              if(o.error){
                   assert.ok(o.error);
@@ -259,11 +264,11 @@ describe('>>>  Redirect <<<', function(t){
       
      describe('received twiiter api data', function(){ // sent data avalable (access token was present on server)
       
-       it('data received', function(){
+       it('data received', function(){                  // data from twitter is received
            assert.doesNotThrow(rd.redirection.bind(rd, resolve, error, sentData))    
        })
         
-       it('data delivered to user', function(done){
+       it('data delivered to user', function(done){    // data from twitter delivered to user
            rd.callback_func = function(o){
               assert.ok(o.data)
               done();
