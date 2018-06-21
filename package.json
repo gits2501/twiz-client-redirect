@@ -4,22 +4,32 @@
   "description": "Redirect (Authorize) leg of OAuth 1.0a for twiz-client",
   "main": "src/Redirect.js",
   "scripts": {
+    "lint": "eslint src/Redirect.js",
+    "instrument": "istanbul instrument src/Redirect.js --output src/Redirect_instrumented.js",
     "browserify": "./node_modules/browserify/bin/cmd.js test/redirect.js -o test/redirect_bundle.js",
-    "watch": "watchify test/redirect.js -o test/redirect_bundle.js --debug -v",
-    "build": "npm run browserify && npm run watch",
-    "test-browser": "./node_modules/browserify/bin/cmd.js test/redirect.js | ./node_modules/smokestack/bin/smokestack.js -b firefox | tap-spec",
-    "test": "test/test.sh"
+    "mocha-headless": "mocha-headless-chrome -a no-sandbox -f mocha-test.html -c test/coverage.json",
+    "report": "istanbul report --root test/ lcov",
+    "coveralls": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage",
+    "test": "npm run instrument && npm run browserify && npm run mocha-headless && npm run report"
   },
   "author": "github.com/gits2501",
   "license": "MIT",
   "dependencies": {
-    "twiz-client-utils": "file:../twiz-client-utils"
+    "twiz-client-utils": "https://github.com/gits2501/twiz-client-utils"
+  },
+  "repository": {
+    "type": "git",
+    "url": "/twiz-client-redirect.git"
+  },
+  "bugs": {
+    "url": "https://github.com/gits2501/twiz-client-redirect/issues"
   },
   "devDependencies": {
-    "browserify": "^16.1.1",
-    "smokestack": "^3.4.1",
-    "tap-spec": "^4.1.1",
-    "tape": "^4.9.0",
-    "watchify": "^3.11.0"
+    "browserify": "^16.2.2",
+    "coveralls": "^3.0.2",
+    "eslint": "^4.19.1",
+    "istanbul": "^0.4.5",
+    "mocha": "^5.2.0",
+    "mocha-headless-chrome": "^2.0.1"
   }
 }

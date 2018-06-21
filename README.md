@@ -1,0 +1,2 @@
+# twiz-client-redirect [![Build Status](https://travis-ci.org/gits2501/twiz-client-redirect.svg?branch=master)](https://travis-ci.org/gits2501/twiz-client-redirect)  [![Coverage Status](https://coveralls.io/repos/github/gits2501/twiz-client-redirect/badge.svg)](https://coveralls.io/github/gits2501/twiz-client-redirect)
+Redirection (Authorize) module for authorize leg of Twitter's 3-leg OAuth (wip)
