@@ -2,25 +2,31 @@ var CustomError = require('twiz-client-utils').CustomError;
    
    function Redirect (args){     // used to redirect user to twitter interstitals page (authorize leg)
     
-      this.newWindow     = args.newWindow;
-      this.url           = args.redirectionUrl;
-      this.callback_func = args.callback_func;
-      // OAuth.call(this);
+      this.newWindow     = args.newWindow;      // new tap / popup features
+      this.url           = args.redirectionUrl; // url whre twitter will direct user after authorization
+      this.callback_func = args.callback_func;  // callback if there is no promise
+      this.reject        = args.reject
 
       this.requestToken;    // data from request token step   
+      
+      this.throwAsyncError = function(error){
+           if(Promise) return this.reject(error);  // if we have promise use reject for async Errors
+           
+           throw error;                            // otherways just throw it
+      }
       
       CustomError.call(this); // add CustomError feature
       this.addCustomErrors({
          noCallbackFunc: 'You must specify a callback function',
          callbackURLnotConfirmed: "Redirection(callback) url you specified wasn't confirmed by Twitter"
       })
+
+    
    }
 
-   // Redirect.prototype = Object.create(OAuth.prototype);
-  
 
    Redirect.prototype.redirection = function(resolve, error, sentData){ // Callback function for 2nd step
-                                                  
+      
       //console.log("From twitter request_token: ", sentData);
       //console.log('sentData type: ',typeof sentData);
       //console.log('error :', error);
@@ -49,13 +55,14 @@ var CustomError = require('twiz-client-utils').CustomError;
          this.callback_func(obj);
          return;
       }
-                                       
-      throw this.CustomError('noCallbackFunc'); // raise error when there is no promise or callback present                      
+      this.throwAsyncError(this.CustomError('noCallbackFunc')); // raise error when there is no promise or
+                                                                // callback present
    }
 
    Redirect.prototype.confirmCallback = function (sent){ // makes sure that twitter is ok with redirection url
       // console.log('confirmed: +++ ',sent.oauth_callback_confirmed)
-      if(sent.oauth_callback_confirmed !== "true") throw this.CustomError('callbackURLnotConfirmed');
+      if(sent.oauth_callback_confirmed !== "true")
+         this.throwAsyncError(this.CustomError('callbackURLnotConfirmed'));
    }
  
    Redirect.prototype.saveRequestToken = function(storage, token){ // save token to storage
@@ -77,7 +84,7 @@ var CustomError = require('twiz-client-utils').CustomError;
 
       }
                          
-      this.site(resolve, url); // site
+      this.site(resolve, url); // site 
       
    };
 
@@ -101,15 +108,13 @@ var CustomError = require('twiz-client-utils').CustomError;
       }
 
       
-      throw this.CustomError('noCallbackFunc'); // raise error when there is no promise or callback present
+      this.throwAsyncError(this.CustomError('noCallbackFunc')); // raise error when there is no promise or callback present
    }
 
    Redirect.prototype.site = function(resolve, url){ 
-      //console.log('>>> Site')
-
       var opened = this.openWindow();       // open new window/popup and save its reference
       opened.location = url;                // change location (redirect)
-       
+      
       this.deliverData(resolve, { 'window': opened })       // newWindow reference
    
    }

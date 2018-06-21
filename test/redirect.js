@@ -18,7 +18,6 @@ var args = {
   callback_func: cb
 }
 
-
 var rd = new Redirect(args);
 
 describe('>>>  Redirect <<<', function(t){
@@ -39,13 +38,13 @@ describe('>>>  Redirect <<<', function(t){
     var error;                                         // no error
     var sentData = {
      oauth_token: 'longStringOfAlphaNumerics109',    // redirection has to happen (token is present)
-     oauth_callback_confirmed: "true"                // redirection url (callback url) confirmed 
+     oauth_callback_confirmed: "true"                // and redirection url (callback url) is confirmed 
     }
 
 
   describe('Redirect (Promise)', function(t){
      
-     var resolve;                 
+     var resolve;
      var p =  new Promise(function(res, rej){ 
            resolve = res;                         // remember resolve
      })
@@ -73,11 +72,20 @@ describe('>>>  Redirect <<<', function(t){
          })
 
         describe('callback url not confirmed by Twitter', function(t){
+            var p = new Promise(function(res, rej){
+                 rd.reject = rej                        // make promise reject reference avalable in rd instance
+            });
+             
+            it('throw error [url not confirmed]', function(done){
             
-            it('throw error [url not confirmed]', function(){
-               sentData.oauth_callback_confirmed = false;  // simulate confirmation with false
-              assert.throws(rd.redirection.bind(rd, resolve, error, sentData), errorValidation.bind(null, 'callbackURLnotConfirmed'));
-               sentData.oauth_callback_confirmed = "true"; // return initial value
+               sentData.oauth_callback_confirmed = false;        // simulate confirmation with false
+               rd.redirection(resolve, error, sentData)          // initiate redirection
+               p.then(function(){},
+                  function onRejected(err){
+                     assert.ok(errorValidation.bind('callbackURLnotConfirmed', err));
+                     sentData.oauth_callback_confirmed = "true"; // return initial value
+                     done();
+               })
             })
      
         })
@@ -170,11 +178,14 @@ describe('>>>  Redirect <<<', function(t){
             
           
           it('throw error (url not confirmed)', function(){
+             var savedPromise = Promise;
+             Promise = '';                               // simulate no promise avalable
              sentData.oauth_callback_confirmed = false;  // simulate confirmation with false
              
              assert.throws(rd.redirection.bind(rd, resolve, error, sentData), errorValidation.bind(null, 'callbackURLnotConfirmed'));
              
              sentData.oauth_callback_confirmed = "true"; // return initial value
+             Promise = savedPromise;                     // return Promise reference; 
           })
           
      
@@ -279,5 +290,22 @@ describe('>>>  Redirect <<<', function(t){
      })
 
    })
+
+   describe('no Promise and no Callback avalable',function(){
+       var savedPromise = Promise;
+       var rd = new Redirect(args)
+       rd.callback_func = '' // no callback
+             
+       it('throw error', function(){
+            
+          Promise  = '';        // no Promise 
+          assert.throws(rd.redirection.bind(rd, '', error, sentData),  // simulate no promise resolver
+                          errorValidation.bind(null, 'noCallbackFunc'));
+          Promise = savedPromise                                        // return Promise functionality
+       })
+
+
+ 
+   }) 
 
 })  
