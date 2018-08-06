@@ -1,0 +1,6 @@
+*.sw*
+*.vim
+*bundle.js
+.nyc_output/
+*instrument*
+*coverage*
